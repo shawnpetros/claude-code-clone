@@ -1,0 +1,539 @@
+[
+  {
+    "id": 1,
+    "category": "setup",
+    "description": "Project compiles with `npx tsx src/cli.ts` without errors (even if it does nothing)",
+    "steps": [
+      "Run `npx tsx src/cli.ts` from the project root",
+      "Verify the process exits with code 0 (no TypeScript compilation errors)",
+      "Verify no import resolution errors appear in the output"
+    ],
+    "passes": false,
+    "depends_on": []
+  },
+  {
+    "id": 2,
+    "category": "setup",
+    "description": "Running `npx tsx src/cli.ts --help` shows usage information (using commander)",
+    "steps": [
+      "Run `npx tsx src/cli.ts --help`",
+      "Verify output includes the program name 'ccclone'",
+      "Verify output includes the description of the program",
+      "Verify output lists the -p/--prompt option",
+      "Verify output lists the -V/--version option"
+    ],
+    "passes": false,
+    "depends_on": [1]
+  },
+  {
+    "id": 3,
+    "category": "setup",
+    "description": "Running `npx tsx src/cli.ts -p \"hello\"` accepts input (can print placeholder response for now)",
+    "steps": [
+      "Run `npx tsx src/cli.ts -p \"hello\"`",
+      "Verify the process does not crash",
+      "Verify some output is printed acknowledging the prompt",
+      "Verify the process exits (does not hang waiting for input)"
+    ],
+    "passes": false,
+    "depends_on": [1, 2]
+  },
+  {
+    "id": 4,
+    "category": "core",
+    "description": "api.ts creates an Anthropic client using ANTHROPIC_API_KEY env var",
+    "steps": [
+      "Set ANTHROPIC_API_KEY environment variable to a valid key",
+      "Call createClient() and verify it returns an Anthropic instance",
+      "Verify the client is configured with the correct API key",
+      "Verify that calling createClient() without ANTHROPIC_API_KEY set throws or the SDK handles it"
+    ],
+    "passes": false,
+    "depends_on": [1]
+  },
+  {
+    "id": 5,
+    "category": "core",
+    "description": "api.ts can send a simple message to Claude and get a response (no streaming, no tools)",
+    "steps": [
+      "Create an Anthropic client with a valid API key",
+      "Call sendMessage() with a simple user message like 'Say hello'",
+      "Verify a response is returned with text content",
+      "Verify the response contains usage information (input_tokens, output_tokens)"
+    ],
+    "passes": false,
+    "depends_on": [4]
+  },
+  {
+    "id": 6,
+    "category": "core",
+    "description": "The REPL in cli.ts reads user input, calls the API, and prints the raw response text",
+    "steps": [
+      "Run `npx tsx src/cli.ts` (interactive mode) with ANTHROPIC_API_KEY set",
+      "Type a simple message like 'hello' and press Enter",
+      "Verify the assistant's response is printed to the terminal",
+      "Verify you can type another message (REPL continues)",
+      "Exit with Ctrl+C and verify clean exit"
+    ],
+    "passes": false,
+    "depends_on": [4, 5]
+  },
+  {
+    "id": 7,
+    "category": "core",
+    "description": "agent.ts implements the agent loop: send message, if tool_use in response execute tool and re-send, if text only return",
+    "steps": [
+      "Call runAgentLoop() with a simple text prompt (no tools needed)",
+      "Verify it returns a text response",
+      "Verify the returned AgentLoopResult includes usage information",
+      "Call runAgentLoop() with a prompt that would trigger tools (but with empty tool list)",
+      "Verify it returns a text response since no tools are available"
+    ],
+    "passes": false,
+    "depends_on": [4, 5]
+  },
+  {
+    "id": 8,
+    "category": "core",
+    "description": "The REPL uses the agent loop instead of direct API calls. Conversation history persists across turns.",
+    "steps": [
+      "Run the REPL interactively",
+      "Send a message like 'My name is Alice'",
+      "Send a follow-up message like 'What is my name?'",
+      "Verify the assistant remembers the name (conversation history persists)",
+      "Verify the agent loop is being used (not direct API calls)"
+    ],
+    "passes": false,
+    "depends_on": [6, 7]
+  },
+  {
+    "id": 9,
+    "category": "tools",
+    "description": "tools/read-file.ts defines the read_file tool schema and implements its executor",
+    "steps": [
+      "Verify readFileTool.definition has correct name, description, and input_schema",
+      "Call readFileTool.execute({ file_path: 'package.json' })",
+      "Verify it returns the contents of package.json",
+      "Call readFileTool.execute({ file_path: 'nonexistent.txt' })",
+      "Verify it returns an error message (not throws/crashes)"
+    ],
+    "passes": false,
+    "depends_on": [1]
+  },
+  {
+    "id": 10,
+    "category": "tools",
+    "description": "tools/write-file.ts defines write_file tool schema and executor",
+    "steps": [
+      "Verify writeFileTool.definition has correct name, description, and input_schema",
+      "Call writeFileTool.execute({ file_path: 'test-output/test.txt', content: 'hello world' })",
+      "Verify the file was created with the correct content",
+      "Verify parent directories were created automatically",
+      "Clean up test file after verification"
+    ],
+    "passes": false,
+    "depends_on": [1]
+  },
+  {
+    "id": 11,
+    "category": "tools",
+    "description": "tools/edit-file.ts defines edit_file tool schema and executor",
+    "steps": [
+      "Create a test file with known content",
+      "Call editFileTool.execute({ file_path: 'test.txt', old_string: 'foo', new_string: 'bar' })",
+      "Verify the file content was updated correctly",
+      "Call editFileTool.execute() with an old_string that doesn't exist in the file",
+      "Verify it returns an error message indicating the string was not found"
+    ],
+    "passes": false,
+    "depends_on": [1]
+  },
+  {
+    "id": 12,
+    "category": "tools",
+    "description": "tools/bash.ts defines bash tool schema and executor",
+    "steps": [
+      "Verify bashTool.definition has correct name, description, and input_schema",
+      "Call bashTool.execute({ command: 'echo hello' })",
+      "Verify it returns 'hello' (stdout output)",
+      "Call bashTool.execute({ command: 'ls nonexistent-dir' })",
+      "Verify it returns the stderr output without crashing"
+    ],
+    "passes": false,
+    "depends_on": [1]
+  },
+  {
+    "id": 13,
+    "category": "tools",
+    "description": "tools/index.ts exports a registry: array of tool definitions and executeTool dispatch function",
+    "steps": [
+      "Call getToolDefinitions() and verify it returns an array of 4 tool definitions",
+      "Verify each definition has name, description, and input_schema fields",
+      "Call executeTool('read_file', { file_path: 'package.json' }) and verify it works",
+      "Call executeTool('unknown_tool', {}) and verify it throws an appropriate error"
+    ],
+    "passes": false,
+    "depends_on": [9, 10, 11, 12]
+  },
+  {
+    "id": 14,
+    "category": "tools",
+    "description": "Tool definitions are passed to the API call in api.ts",
+    "steps": [
+      "Verify that sendMessage() and streamMessage() accept a tools parameter",
+      "Verify that getToolDefinitions() output is compatible with the Anthropic API tool format",
+      "Make an API call with tools included and verify no errors from the API about tool format"
+    ],
+    "passes": false,
+    "depends_on": [5, 13]
+  },
+  {
+    "id": 15,
+    "category": "tools",
+    "description": "Agent loop executes tools and appends tool_result messages correctly",
+    "steps": [
+      "Run the REPL with all tools enabled",
+      "Ask 'read the file package.json'",
+      "Verify the agent uses the read_file tool",
+      "Verify the tool result (file contents) is sent back to Claude",
+      "Verify Claude responds with information about the file contents"
+    ],
+    "passes": false,
+    "depends_on": [7, 13, 14]
+  },
+  {
+    "id": 16,
+    "category": "streaming",
+    "description": "api.ts supports streaming responses using client.messages.stream()",
+    "steps": [
+      "Call streamMessage() with a simple prompt",
+      "Provide an onText callback that collects tokens",
+      "Verify the callback is called multiple times with text chunks",
+      "Verify the final assembled message matches the complete response"
+    ],
+    "passes": false,
+    "depends_on": [5]
+  },
+  {
+    "id": 17,
+    "category": "streaming",
+    "description": "Streaming works for text-only responses (tokens appear one by one in terminal)",
+    "steps": [
+      "Run the REPL interactively",
+      "Send a message that will produce a long text response",
+      "Verify tokens appear incrementally in the terminal (not all at once)",
+      "Verify the complete response is readable and correct"
+    ],
+    "passes": false,
+    "depends_on": [8, 16]
+  },
+  {
+    "id": 18,
+    "category": "streaming",
+    "description": "Streaming correctly handles tool_use blocks",
+    "steps": [
+      "Run the REPL with streaming enabled",
+      "Ask a question that requires a tool call (e.g., 'read package.json')",
+      "Verify the tool_use block is accumulated correctly during streaming",
+      "Verify the tool is executed after the stream ends",
+      "Verify the tool result is sent back to the model"
+    ],
+    "passes": false,
+    "depends_on": [15, 16, 17]
+  },
+  {
+    "id": 19,
+    "category": "streaming",
+    "description": "After a tool result is sent back, the next response also streams",
+    "steps": [
+      "Run the REPL with streaming enabled",
+      "Ask a question that triggers a tool call",
+      "After the tool executes, verify the follow-up response also streams token by token",
+      "Verify the complete flow: stream -> tool call -> stream response is seamless"
+    ],
+    "passes": false,
+    "depends_on": [18]
+  },
+  {
+    "id": 20,
+    "category": "ui",
+    "description": "User input is prompted with a visible indicator (e.g., '> ' or 'You: ')",
+    "steps": [
+      "Run the REPL interactively",
+      "Verify a prompt indicator is visible (e.g., '> ' or 'You: ')",
+      "Type a message and verify the indicator appears again after the response"
+    ],
+    "passes": false,
+    "depends_on": [6]
+  },
+  {
+    "id": 21,
+    "category": "ui",
+    "description": "Assistant responses are visually distinct from user input (different color)",
+    "steps": [
+      "Run the REPL interactively",
+      "Send a message and observe the response",
+      "Verify the assistant's text is rendered in a different color than the user's input",
+      "Verify the color is applied using chalk"
+    ],
+    "passes": false,
+    "depends_on": [8, 20]
+  },
+  {
+    "id": 22,
+    "category": "ui",
+    "description": "Markdown in responses is rendered in the terminal (headers, bold, italic, lists)",
+    "steps": [
+      "Send a prompt that will produce markdown output (e.g., 'List 3 items with a header')",
+      "Verify headers are rendered with appropriate formatting",
+      "Verify bold and italic text are rendered differently",
+      "Verify bulleted/numbered lists are formatted properly",
+      "Verify the markdown rendering uses marked + marked-terminal"
+    ],
+    "passes": false,
+    "depends_on": [21]
+  },
+  {
+    "id": 23,
+    "category": "ui",
+    "description": "Code blocks in responses have syntax highlighting",
+    "steps": [
+      "Send a prompt that will produce a code block (e.g., 'Write a hello world in Python')",
+      "Verify the code block is visually distinct from surrounding text",
+      "Verify syntax highlighting is applied (keywords, strings, etc. are colored)",
+      "Verify the language label is shown if provided in the markdown"
+    ],
+    "passes": false,
+    "depends_on": [22]
+  },
+  {
+    "id": 24,
+    "category": "ui",
+    "description": "A spinner/loading indicator shows while waiting for API response",
+    "steps": [
+      "Run the REPL and send a message",
+      "Verify a spinner or loading indicator appears while waiting for the response",
+      "Verify the spinner disappears once the response starts streaming",
+      "Verify the spinner animation is smooth and doesn't flicker"
+    ],
+    "passes": false,
+    "depends_on": [8]
+  },
+  {
+    "id": 25,
+    "category": "ui",
+    "description": "Tool calls are displayed to the user (e.g., 'Reading file: package.json...')",
+    "steps": [
+      "Run the REPL and trigger a tool call (e.g., 'read package.json')",
+      "Verify a message is displayed showing which tool is being called",
+      "Verify the tool call display includes relevant parameters (e.g., file path)",
+      "Verify the display is visually distinct from assistant text"
+    ],
+    "passes": false,
+    "depends_on": [15, 21]
+  },
+  {
+    "id": 26,
+    "category": "ui",
+    "description": "Tool results are shown (or summarized) before the assistant's next response",
+    "steps": [
+      "Run the REPL and trigger a tool call",
+      "Verify the tool result is displayed or summarized after the tool executes",
+      "Verify the result display is distinguishable from assistant text",
+      "Verify long results are truncated or summarized appropriately"
+    ],
+    "passes": false,
+    "depends_on": [25]
+  },
+  {
+    "id": 27,
+    "category": "context",
+    "description": "context/manager.ts tracks the total token count of the conversation",
+    "steps": [
+      "Create a ContextManager instance",
+      "Call updateUsage() with sample usage data",
+      "Call getUsage() and verify it returns correct cumulative totals",
+      "Call updateUsage() again and verify totals accumulate",
+      "Verify the agent loop calls updateUsage() after each API response"
+    ],
+    "passes": false,
+    "depends_on": [7]
+  },
+  {
+    "id": 28,
+    "category": "context",
+    "description": "Token count is displayed somewhere visible (e.g., in the prompt line or status line)",
+    "steps": [
+      "Run the REPL and send a few messages",
+      "Verify the token count is displayed somewhere visible after each response",
+      "Verify the count updates after each API call",
+      "Verify both input and output tokens are tracked"
+    ],
+    "passes": false,
+    "depends_on": [27, 20]
+  },
+  {
+    "id": 29,
+    "category": "context",
+    "description": "context/compaction.ts implements compaction: summarizes old messages and replaces them",
+    "steps": [
+      "Create a conversation with several messages",
+      "Call compactMessages() with the messages array",
+      "Verify the returned array has fewer messages",
+      "Verify the first message is a summary of the old conversation",
+      "Verify the summary captures key information from the original messages"
+    ],
+    "passes": false,
+    "depends_on": [5, 27]
+  },
+  {
+    "id": 30,
+    "category": "context",
+    "description": "When token count exceeds 80% of context window, compaction is triggered automatically",
+    "steps": [
+      "Simulate a conversation that reaches 80% of the context window",
+      "Verify ContextManager.needsCompaction() returns true",
+      "Verify the agent loop checks for compaction after each turn",
+      "Verify compaction is triggered automatically when the threshold is exceeded"
+    ],
+    "passes": false,
+    "depends_on": [29]
+  },
+  {
+    "id": 31,
+    "category": "context",
+    "description": "After compaction, the conversation continues normally",
+    "steps": [
+      "Trigger a compaction (or simulate one)",
+      "Send a new message after compaction",
+      "Verify the assistant responds normally",
+      "Verify the token count is lower after compaction",
+      "Verify the assistant still has context from the summary"
+    ],
+    "passes": false,
+    "depends_on": [30]
+  },
+  {
+    "id": 32,
+    "category": "cli",
+    "description": "-p 'prompt' mode: runs a single prompt through the agent loop, prints result, exits",
+    "steps": [
+      "Run `npx tsx src/cli.ts -p 'What is 2+2?'` with ANTHROPIC_API_KEY set",
+      "Verify the assistant's response is printed to stdout",
+      "Verify the process exits after printing the response (exit code 0)",
+      "Verify tools work in -p mode (e.g., -p 'Read the file package.json')"
+    ],
+    "passes": false,
+    "depends_on": [3, 8]
+  },
+  {
+    "id": 33,
+    "category": "cli",
+    "description": "/help command in REPL shows available commands",
+    "steps": [
+      "Run the REPL interactively",
+      "Type '/help' and press Enter",
+      "Verify a list of available commands is displayed",
+      "Verify the list includes /help and /clear at minimum",
+      "Verify the help text is formatted readably"
+    ],
+    "passes": false,
+    "depends_on": [8]
+  },
+  {
+    "id": 34,
+    "category": "cli",
+    "description": "/clear command starts a fresh conversation (resets messages array)",
+    "steps": [
+      "Run the REPL and send a message like 'My name is Bob'",
+      "Type '/clear' and press Enter",
+      "Verify a confirmation message is shown",
+      "Send 'What is my name?' and verify the assistant does NOT remember 'Bob'",
+      "Verify the token count resets after /clear"
+    ],
+    "passes": false,
+    "depends_on": [8, 27]
+  },
+  {
+    "id": 35,
+    "category": "cli",
+    "description": "Ctrl+C during generation cancels the current response gracefully",
+    "steps": [
+      "Run the REPL and send a message that will produce a long response",
+      "Press Ctrl+C while the response is streaming",
+      "Verify the generation stops",
+      "Verify the REPL returns to the prompt (doesn't crash)",
+      "Verify you can send another message after cancellation"
+    ],
+    "passes": false,
+    "depends_on": [17]
+  },
+  {
+    "id": 36,
+    "category": "polish",
+    "description": "Missing ANTHROPIC_API_KEY shows a helpful error message and exits",
+    "steps": [
+      "Unset the ANTHROPIC_API_KEY environment variable",
+      "Run `npx tsx src/cli.ts`",
+      "Verify a clear error message is shown explaining the missing key",
+      "Verify the message suggests how to set the key",
+      "Verify the process exits with a non-zero exit code"
+    ],
+    "passes": false,
+    "depends_on": [4]
+  },
+  {
+    "id": 37,
+    "category": "polish",
+    "description": "API errors (rate limit, network failure) are caught and displayed as user-friendly messages",
+    "steps": [
+      "Set ANTHROPIC_API_KEY to an invalid value",
+      "Run the REPL and send a message",
+      "Verify the error is caught and displayed as a readable message (not a stack trace)",
+      "Verify the REPL continues running after the error (doesn't crash)",
+      "Verify you can try again after the error"
+    ],
+    "passes": false,
+    "depends_on": [8]
+  },
+  {
+    "id": 38,
+    "category": "polish",
+    "description": "Tool execution errors are caught and sent back to Claude as error tool_results",
+    "steps": [
+      "Trigger a tool that will fail (e.g., read a nonexistent file)",
+      "Verify the error is caught and sent as a tool_result with is_error: true",
+      "Verify Claude receives the error and responds appropriately (e.g., 'The file was not found')",
+      "Verify the REPL continues normally after the tool error"
+    ],
+    "passes": false,
+    "depends_on": [15]
+  },
+  {
+    "id": 39,
+    "category": "polish",
+    "description": "Malformed tool call arguments are handled gracefully",
+    "steps": [
+      "Simulate a tool call with invalid/missing arguments",
+      "Verify the error is caught and sent back as an error tool_result",
+      "Verify Claude is informed about the malformed arguments",
+      "Verify the agent loop continues processing"
+    ],
+    "passes": false,
+    "depends_on": [15]
+  },
+  {
+    "id": 40,
+    "category": "polish",
+    "description": "If edit_file tool's old_string is not found in the file, return an error",
+    "steps": [
+      "Create a test file with known content",
+      "Call edit_file with an old_string that does not exist in the file",
+      "Verify it returns an error message (not success)",
+      "Verify the error message clearly states the string was not found",
+      "Verify the original file is unchanged"
+    ],
+    "passes": false,
+    "depends_on": [11, 38]
+  }
+]
