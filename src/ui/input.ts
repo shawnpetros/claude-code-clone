@@ -15,9 +15,11 @@ export function createInputInterface(): readline.Interface {
 }
 
 export function promptUser(rl: readline.Interface): Promise<string> {
-  // TODO: Show prompt and wait for user input
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    const onClose = () => reject(new Error("readline closed"));
+    rl.once("close", onClose);
     rl.question("> ", (answer) => {
+      rl.removeListener("close", onClose);
       resolve(answer);
     });
   });

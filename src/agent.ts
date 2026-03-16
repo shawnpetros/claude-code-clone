@@ -8,14 +8,15 @@ export async function runAgentLoop(
   messages: Anthropic.MessageParam[],
   onText?: (text: string) => void,
   onToolUse?: (toolName: string, input: Record<string, unknown>) => void,
-  onToolResult?: (toolName: string, result: string) => void
+  onToolResult?: (toolName: string, result: string) => void,
+  signal?: AbortSignal
 ): Promise<AgentLoopResult> {
   const tools = getToolDefinitions();
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
 
   while (true) {
-    const response = await streamMessage(client, messages, tools, onText);
+    const response = await streamMessage(client, messages, tools, onText, signal);
     totalInputTokens += response.usage.input_tokens;
     totalOutputTokens += response.usage.output_tokens;
 

@@ -46,6 +46,7 @@ async function runPromptMode(prompt: string): Promise<void> {
   spinner.start();
 
   try {
+    const streamedChunks: string[] = [];
     const result = await runAgentLoop(
       client,
       messages,
@@ -54,7 +55,8 @@ async function runPromptMode(prompt: string): Promise<void> {
           spinner.stop();
           spinnerActive = false;
         }
-        process.stdout.write(text);
+        streamedChunks.push(text);
+        process.stdout.write(chalk.white(text));
       },
       (toolName, input) => {
         if (spinnerActive) {
@@ -88,11 +90,16 @@ async function runInteractiveMode(): Promise<void> {
   const messages: Anthropic.MessageParam[] = [];
   const spinner = new Spinner();
   let isProcessing = false;
+  let currentAbortController: AbortController | null = null;
 
   process.on("SIGINT", () => {
     if (isProcessing) {
       spinner.stop();
       isProcessing = false;
+      if (currentAbortController) {
+        currentAbortController.abort();
+        currentAbortController = null;
+      }
       console.log(chalk.dim("\n  (cancelled)"));
       rl.prompt();
     } else {
@@ -125,8 +132,11 @@ async function runInteractiveMode(): Promise<void> {
       isProcessing = true;
       let spinnerActive = true;
       spinner.start();
+      currentAbortController = new AbortController();
 
       try {
+        const streamedChunks: string[] = [];
+        let hasToolCalls = false;
         const result = await runAgentLoop(
           client,
           messages,
@@ -135,21 +145,35 @@ async function runInteractiveMode(): Promise<void> {
               spinner.stop();
               spinnerActive = false;
             }
-            process.stdout.write(text);
+            streamedChunks.push(text);
+            process.stdout.write(chalk.white(text));
           },
           (toolName, input) => {
             if (spinnerActive) {
               spinner.stop();
               spinnerActive = false;
             }
+            hasToolCalls = true;
             renderToolCall(toolName, input);
           },
           (toolName, result) => {
             renderToolResult(toolName, result);
-          }
+          },
+          currentAbortController.signal
         );
 
-        process.stdout.write("\n");
+        // Re-render final response with markdown if no tool calls were involved
+        if (!hasToolCalls && result.response) {
+          const cols = process.stdout.columns || 80;
+          let displayedLines = 0;
+          for (const line of streamedChunks.join("").split("\n")) {
+            displayedLines += Math.max(1, Math.ceil((line.length || 1) / cols));
+          }
+          process.stdout.write(`\x1b[${displayedLines}A\x1b[J`);
+          renderAssistantMessage(result.response);
+        } else {
+          process.stdout.write("\n");
+        }
         contextManager.updateUsage({
           input_tokens: result.usage.inputTokens,
           output_tokens: result.usage.outputTokens,
@@ -166,9 +190,13 @@ async function runInteractiveMode(): Promise<void> {
         }
       } catch (err) {
         spinner.stop();
-        renderError((err as Error).message);
+        const message = (err as Error).message || "";
+        if (!message.includes("abort") && !message.includes("cancel")) {
+          renderError(message);
+        }
       }
 
+      currentAbortController = null;
       isProcessing = false;
       console.log();
     }

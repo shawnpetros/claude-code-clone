@@ -30,15 +30,19 @@ export async function streamMessage(
   client: Anthropic,
   messages: Anthropic.MessageParam[],
   tools?: Anthropic.Tool[],
-  onText?: (text: string) => void
+  onText?: (text: string) => void,
+  signal?: AbortSignal
 ): Promise<Anthropic.Message> {
-  const stream = client.messages.stream({
-    model: MODEL_NAME,
-    max_tokens: MAX_OUTPUT_TOKENS,
-    system: SYSTEM_PROMPT,
-    messages,
-    ...(tools && tools.length > 0 ? { tools } : {}),
-  });
+  const stream = client.messages.stream(
+    {
+      model: MODEL_NAME,
+      max_tokens: MAX_OUTPUT_TOKENS,
+      system: SYSTEM_PROMPT,
+      messages,
+      ...(tools && tools.length > 0 ? { tools } : {}),
+    },
+    signal ? { signal } : undefined
+  );
 
   if (onText) {
     stream.on("text", (text) => onText(text));
