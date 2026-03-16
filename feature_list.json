@@ -48,7 +48,7 @@
       "Verify the client is configured with the correct API key",
       "Verify that calling createClient() without ANTHROPIC_API_KEY set throws or the SDK handles it"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [1]
   },
   {
