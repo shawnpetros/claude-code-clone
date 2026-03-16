@@ -1,9 +1,4 @@
-// TODO: edit_file tool definition and executor
-// - Define the tool schema (file_path, old_string, new_string parameters)
-// - Implement executor that replaces old_string with new_string in the file
-// - Return error if old_string is not found in the file
-// - Handle file not found and permission errors
-
+import { readFile, writeFile } from "node:fs/promises";
 import type { ToolRegistryEntry } from "../types.js";
 
 export const editFileTool: ToolRegistryEntry = {
@@ -29,9 +24,27 @@ export const editFileTool: ToolRegistryEntry = {
       required: ["file_path", "old_string", "new_string"],
     },
   },
-  execute: async (_input: Record<string, unknown>): Promise<string> => {
-    // TODO: Read file, replace old_string with new_string, write file
-    // Return error if old_string not found
-    throw new Error("Not implemented");
+  execute: async (input: Record<string, unknown>): Promise<string> => {
+    const filePath = input.file_path as string;
+    const oldString = input.old_string as string;
+    const newString = input.new_string as string;
+    try {
+      const content = await readFile(filePath, "utf-8");
+      if (!content.includes(oldString)) {
+        return `Error: The string to replace was not found in ${filePath}`;
+      }
+      const updated = content.replace(oldString, newString);
+      await writeFile(filePath, updated, "utf-8");
+      return `Successfully edited ${filePath}`;
+    } catch (err) {
+      const e = err as NodeJS.ErrnoException;
+      if (e.code === "ENOENT") {
+        return `Error: File not found: ${filePath}`;
+      }
+      if (e.code === "EACCES") {
+        return `Error: Permission denied: ${filePath}`;
+      }
+      return `Error editing file: ${e.message}`;
+    }
   },
 };

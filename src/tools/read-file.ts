@@ -1,8 +1,4 @@
-// TODO: read_file tool definition and executor
-// - Define the tool schema (file_path parameter)
-// - Implement executor that reads file contents and returns them
-// - Handle file not found and permission errors
-
+import { readFile } from "node:fs/promises";
 import type { ToolRegistryEntry } from "../types.js";
 
 export const readFileTool: ToolRegistryEntry = {
@@ -20,8 +16,20 @@ export const readFileTool: ToolRegistryEntry = {
       required: ["file_path"],
     },
   },
-  execute: async (_input: Record<string, unknown>): Promise<string> => {
-    // TODO: Read and return file contents
-    throw new Error("Not implemented");
+  execute: async (input: Record<string, unknown>): Promise<string> => {
+    const filePath = input.file_path as string;
+    try {
+      const content = await readFile(filePath, "utf-8");
+      return content;
+    } catch (err) {
+      const e = err as NodeJS.ErrnoException;
+      if (e.code === "ENOENT") {
+        return `Error: File not found: ${filePath}`;
+      }
+      if (e.code === "EACCES") {
+        return `Error: Permission denied: ${filePath}`;
+      }
+      return `Error reading file: ${e.message}`;
+    }
   },
 };

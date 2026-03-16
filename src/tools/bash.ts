@@ -1,9 +1,4 @@
-// TODO: bash tool definition and executor
-// - Define the tool schema (command parameter)
-// - Implement executor that runs command via child_process
-// - Return stdout and stderr combined
-// - Handle execution errors and timeouts
-
+import { exec } from "node:child_process";
 import type { ToolRegistryEntry } from "../types.js";
 
 export const bashTool: ToolRegistryEntry = {
@@ -21,8 +16,17 @@ export const bashTool: ToolRegistryEntry = {
       required: ["command"],
     },
   },
-  execute: async (_input: Record<string, unknown>): Promise<string> => {
-    // TODO: Execute command via child_process and return output
-    throw new Error("Not implemented");
+  execute: async (input: Record<string, unknown>): Promise<string> => {
+    const command = input.command as string;
+    return new Promise((resolve) => {
+      exec(command, { timeout: 30000 }, (error, stdout, stderr) => {
+        const output = [stdout, stderr].filter(Boolean).join("\n");
+        if (error && !output) {
+          resolve(`Error: ${error.message}`);
+          return;
+        }
+        resolve(output || "(no output)");
+      });
+    });
   },
 };

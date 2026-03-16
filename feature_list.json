@@ -117,7 +117,7 @@
       "Call readFileTool.execute({ file_path: 'nonexistent.txt' })",
       "Verify it returns an error message (not throws/crashes)"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [1]
   },
   {
@@ -131,7 +131,7 @@
       "Verify parent directories were created automatically",
       "Clean up test file after verification"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [1]
   },
   {
@@ -145,7 +145,7 @@
       "Call editFileTool.execute() with an old_string that doesn't exist in the file",
       "Verify it returns an error message indicating the string was not found"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [1]
   },
   {
@@ -159,7 +159,7 @@
       "Call bashTool.execute({ command: 'ls nonexistent-dir' })",
       "Verify it returns the stderr output without crashing"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [1]
   },
   {
@@ -172,7 +172,7 @@
       "Call executeTool('read_file', { file_path: 'package.json' }) and verify it works",
       "Call executeTool('unknown_tool', {}) and verify it throws an appropriate error"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [9, 10, 11, 12]
   },
   {

@@ -1,9 +1,5 @@
-// TODO: write_file tool definition and executor
-// - Define the tool schema (file_path, content parameters)
-// - Implement executor that writes content to the given path
-// - Create parent directories if they don't exist
-// - Handle permission errors
-
+import { writeFile, mkdir } from "node:fs/promises";
+import { dirname } from "node:path";
 import type { ToolRegistryEntry } from "../types.js";
 
 export const writeFileTool: ToolRegistryEntry = {
@@ -25,8 +21,19 @@ export const writeFileTool: ToolRegistryEntry = {
       required: ["file_path", "content"],
     },
   },
-  execute: async (_input: Record<string, unknown>): Promise<string> => {
-    // TODO: Write content to file, creating parent dirs as needed
-    throw new Error("Not implemented");
+  execute: async (input: Record<string, unknown>): Promise<string> => {
+    const filePath = input.file_path as string;
+    const content = input.content as string;
+    try {
+      await mkdir(dirname(filePath), { recursive: true });
+      await writeFile(filePath, content, "utf-8");
+      return `Successfully wrote to ${filePath}`;
+    } catch (err) {
+      const e = err as NodeJS.ErrnoException;
+      if (e.code === "EACCES") {
+        return `Error: Permission denied: ${filePath}`;
+      }
+      return `Error writing file: ${e.message}`;
+    }
   },
 };
