@@ -1,25 +1,40 @@
-// TODO: Render assistant messages with formatting
-// - Render markdown in terminal (using marked + marked-terminal)
-// - Apply syntax highlighting to code blocks
-// - Color assistant output differently from user input
-// - Display tool call names and results
+import chalk from "chalk";
+import { Marked } from "marked";
+import { markedTerminal } from "marked-terminal";
+
+const marked = new Marked(markedTerminal() as Parameters<Marked["use"]>[0]);
 
 export function renderAssistantMessage(text: string): void {
-  // TODO: Render markdown-formatted text to terminal
-  console.log(text);
+  const rendered = marked.parse(text);
+  if (typeof rendered === "string") {
+    process.stdout.write(rendered);
+  }
 }
 
 export function renderToolCall(toolName: string, input: Record<string, unknown>): void {
-  // TODO: Display tool call info (e.g., "Reading file: package.json...")
-  console.log(`[Tool: ${toolName}]`);
+  let detail = "";
+  if (toolName === "read_file" && input.file_path) {
+    detail = ` ${input.file_path}`;
+  } else if (toolName === "write_file" && input.file_path) {
+    detail = ` ${input.file_path}`;
+  } else if (toolName === "edit_file" && input.file_path) {
+    detail = ` ${input.file_path}`;
+  } else if (toolName === "bash" && input.command) {
+    detail = ` \`${input.command}\``;
+  }
+  console.log(chalk.cyan(`  ⚡ ${toolName}${detail}`));
 }
 
 export function renderToolResult(toolName: string, result: string): void {
-  // TODO: Display or summarize tool result
-  console.log(`[Result from ${toolName}]`);
+  const maxLen = 200;
+  const truncated = result.length > maxLen ? result.slice(0, maxLen) + "..." : result;
+  console.log(chalk.dim(`  ↳ ${truncated.split("\n")[0]}`));
 }
 
 export function renderError(message: string): void {
-  // TODO: Display error message in red
-  console.error(message);
+  console.error(chalk.red(`Error: ${message}`));
+}
+
+export function renderTokenUsage(inputTokens: number, outputTokens: number): void {
+  console.log(chalk.dim(`  [tokens: ${inputTokens} in / ${outputTokens} out]`));
 }

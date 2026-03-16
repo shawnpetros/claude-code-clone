@@ -479,7 +479,7 @@
       "Verify the message suggests how to set the key",
       "Verify the process exits with a non-zero exit code"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [4]
   },
   {

@@ -1,21 +1,25 @@
-// TODO: Simple spinner/loading indicator
-// - Show animated spinner while waiting for API response
-// - Use ANSI escape codes for animation
-// - Start/stop methods
-// - Don't interfere with streamed output
+const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
 export class Spinner {
   private interval: ReturnType<typeof setInterval> | null = null;
+  private frameIndex = 0;
 
   start(message = "Thinking..."): void {
-    // TODO: Show spinning animation with message
+    this.frameIndex = 0;
+    process.stdout.write(`\x1b[?25l`); // hide cursor
+    this.interval = setInterval(() => {
+      const frame = SPINNER_FRAMES[this.frameIndex % SPINNER_FRAMES.length];
+      process.stdout.write(`\r${frame} ${message}`);
+      this.frameIndex++;
+    }, 80);
   }
 
   stop(): void {
-    // TODO: Clear spinner and restore cursor
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
+      process.stdout.write(`\r\x1b[K`); // clear line
+      process.stdout.write(`\x1b[?25h`); // show cursor
     }
   }
 }
