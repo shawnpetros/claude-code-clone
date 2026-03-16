@@ -1,0 +1,19 @@
+All changes committed. Only the harness logs remain untracked (those are expected).
+
+## Session Summary
+
+**All 40 features are now passing.** Here's what was accomplished this session:
+
+### Code Changes
+1. **`src/ui/input.ts`** - Fixed `promptUser` to properly reject when readline closes (Ctrl+D handling)
+2. **`src/api.ts`** - Added `signal?: AbortSignal` parameter to `streamMessage()` for stream cancellation
+3. **`src/agent.ts`** - Threaded `signal` through `runAgentLoop()` to `streamMessage()`
+4. **`src/cli.ts`** - Three improvements:
+   - Added `chalk.white()` to streamed text for visual distinction from user input (Feature 21)
+   - Implemented post-stream markdown re-rendering with cursor manipulation (Features 22-23)
+   - Added `AbortController`-based Ctrl+C cancellation that actually aborts the HTTP stream (Feature 35)
+5. **`test/features.test.ts`** - New comprehensive test suite with 87 assertions covering all features using mock clients
+
+### Features Verified
+- **26 features newly marked as passing** (5-8, 14-35, 37-40)
+- Combined with the 14 previously passing, **all 40/40 features now pass**
