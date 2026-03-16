@@ -32,7 +32,17 @@ export function renderToolResult(toolName: string, result: string): void {
 }
 
 export function renderError(message: string): void {
-  console.error(chalk.red(`Error: ${message}`));
+  let friendly = message;
+  if (message.includes("authentication_error")) {
+    friendly = "Invalid API key. Please check your ANTHROPIC_API_KEY.";
+  } else if (message.includes("rate_limit")) {
+    friendly = "Rate limited by the API. Please wait a moment and try again.";
+  } else if (message.includes("overloaded")) {
+    friendly = "The API is currently overloaded. Please try again shortly.";
+  } else if (message.includes("ENOTFOUND") || message.includes("ECONNREFUSED")) {
+    friendly = "Network error. Please check your internet connection.";
+  }
+  console.error(chalk.red(`Error: ${friendly}`));
 }
 
 export function renderTokenUsage(inputTokens: number, outputTokens: number): void {
