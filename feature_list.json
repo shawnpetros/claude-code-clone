@@ -8,7 +8,7 @@
       "Verify the process exits with code 0 (no TypeScript compilation errors)",
       "Verify no import resolution errors appear in the output"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": []
   },
   {
@@ -22,7 +22,7 @@
       "Verify output lists the -p/--prompt option",
       "Verify output lists the -V/--version option"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [1]
   },
   {
@@ -35,7 +35,7 @@
       "Verify some output is printed acknowledging the prompt",
       "Verify the process exits (does not hang waiting for input)"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [1, 2]
   },
   {
