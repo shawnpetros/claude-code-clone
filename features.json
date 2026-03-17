@@ -64,6 +64,15 @@
           "status": "complete"
         }
       ]
+    },
+    {
+      "id": "P2",
+      "name": "Polish & Demo",
+      "status": "in_progress",
+      "features": [
+        { "id": "P2-F1", "name": "Exit Command", "status": "not_started" },
+        { "id": "P2-F2", "name": "Markdown Rendering Fix", "status": "not_started" }
+      ]
     }
   ]
 }

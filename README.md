@@ -28,6 +28,8 @@ The point wasn't to prove "AI can code" (we know). The point was to prove that *
 
 It's a terminal-based coding assistant. You talk to Claude. Claude talks back. When Claude needs to read a file, write a file, edit a file, or run a shell command — it does, and then keeps going until it has an answer for you.
 
+![ccclone demo](demo/output/cli-demo.gif)
+
 ```
 $ ccclone
 > Read package.json and tell me what dependencies I have
@@ -148,6 +150,7 @@ node dist/cli.js
 |---------|-------------|
 | `/help` | Show available commands |
 | `/clear` | Nuke conversation history, start fresh |
+| `/exit` | Exit the REPL (also: `exit`, `quit`, `/quit`) |
 | `Ctrl+C` | Cancel the current streaming response |
 | `Ctrl+D` | Exit |
 
