@@ -1,0 +1,69 @@
+{
+  "project": "claude-code-clone",
+  "framework": "The Harness (Spec > Split > Execute > Verify > Iterate)",
+  "updated": "2026-03-16",
+  "phases": [
+    {
+      "id": "P0",
+      "name": "Core Build",
+      "status": "complete",
+      "features": [
+        {
+          "id": "P0-F1",
+          "name": "Project Scaffolding",
+          "description": "TypeScript project structure, package.json, tsconfig, stub files for all modules.",
+          "status": "complete"
+        },
+        {
+          "id": "P0-F2",
+          "name": "API Integration",
+          "description": "Anthropic SDK client, message sending (streaming + non-streaming), tool-aware API calls.",
+          "status": "complete"
+        },
+        {
+          "id": "P0-F3",
+          "name": "Tool System",
+          "description": "read_file, write_file, edit_file, bash tools with registry and dispatcher.",
+          "status": "complete"
+        },
+        {
+          "id": "P0-F4",
+          "name": "Agent Loop",
+          "description": "Core agentic loop: send → detect tool_use → execute → feed result back → repeat until text-only response.",
+          "status": "complete"
+        },
+        {
+          "id": "P0-F5",
+          "name": "Interactive REPL",
+          "description": "Readline-based REPL with streaming output, markdown rendering, spinner, tool call display.",
+          "status": "complete"
+        },
+        {
+          "id": "P0-F6",
+          "name": "Context Management",
+          "description": "Token tracking, compaction at 80% of 200k window, conversation summarization.",
+          "status": "complete"
+        },
+        {
+          "id": "P0-F7",
+          "name": "CLI & Error Handling",
+          "description": "One-shot prompt mode, /help, /clear, Ctrl+C cancellation, friendly error messages.",
+          "status": "complete"
+        }
+      ]
+    },
+    {
+      "id": "P1",
+      "name": "Documentation",
+      "status": "complete",
+      "features": [
+        {
+          "id": "P1-F1",
+          "name": "README",
+          "description": "Snarky educational README with architecture, setup instructions, and project philosophy.",
+          "status": "complete"
+        }
+      ]
+    }
+  ]
+}
