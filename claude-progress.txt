@@ -38,3 +38,12 @@
 **Status**: ALL 40 FEATURES PASSING. Project is complete.
 The code compiles, all tests pass (87/87), and all features are verified.
 To use the tool live, set ANTHROPIC_API_KEY and run `npx tsx src/cli.ts`.
+
+### Session 3 (P2 Features)
+- Implemented Feature 41: exit/quit commands — 'exit', '/exit', 'quit', '/quit' all print 'Goodbye!' and exit code 0
+- Updated /help to list /exit as an available command
+- Implemented Feature 42: markdown rendering for tool-call responses — reset streamedChunks after each tool result so cursor manipulation only clears the final response text, then always re-render with renderAssistantMessage
+- All 42 features now passing, all 87 tests still green
+- Commit: e1d6928
+
+**Status**: ALL 42 FEATURES PASSING. Project is fully complete.
