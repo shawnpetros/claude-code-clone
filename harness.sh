@@ -93,9 +93,49 @@ run_agent() {
     # Spawn claude in non-interactive mode with the prompt
     # --dangerously-skip-permissions: required for autonomous operation
     #   since there's no human to approve tool calls in -p mode
+    # --output-format stream-json: stream tool calls and text as they happen
+    # --verbose: additional debug output
+    # Pipe through jq to extract readable text from the stream, while
+    # also saving the raw JSON stream for debugging
+    local raw_log="$log_file.raw.jsonl"
+
     claude -p "$(cat "$prompt_file")" \
         --dangerously-skip-permissions \
-        2>&1 | tee "$log_file"
+        --output-format stream-json \
+        --verbose \
+        --disable-slash-commands \
+        --strict-mcp-config \
+        --mcp-config '{"mcpServers":{}}' \
+        --no-session-persistence \
+        2>&1 | tee "$raw_log" | while IFS= read -r line; do
+        # Extract content from stream-json events for readable output
+        local type
+        type=$(echo "$line" | jq -r '.type // empty' 2>/dev/null) || continue
+        case "$type" in
+            assistant)
+                # Text content from assistant
+                echo "$line" | jq -r '.message.content[]? | select(.type=="text") | .text // empty' 2>/dev/null
+                ;;
+            content_block_delta)
+                # Streaming text delta
+                echo -n "$(echo "$line" | jq -r '.delta.text // empty' 2>/dev/null)"
+                ;;
+            tool_use)
+                local tool_name
+                tool_name=$(echo "$line" | jq -r '.tool_name // .name // empty' 2>/dev/null)
+                echo "[TOOL] $tool_name"
+                ;;
+            tool_result)
+                echo "[RESULT] ($(echo "$line" | jq -r '.content | length' 2>/dev/null) chars)"
+                ;;
+            result)
+                # Final result
+                echo ""
+                echo "--- SESSION COMPLETE ---"
+                echo "$line" | jq -r '.result // empty' 2>/dev/null
+                ;;
+        esac
+    done | tee "$log_file"
 
     local exit_code=${PIPESTATUS[0]}
 

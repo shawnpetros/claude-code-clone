@@ -1,0 +1,83 @@
+DEMO RECORDING INSTRUCTIONS
+============================
+
+PREREQS
+-------
+brew install asciinema ffmpeg
+cargo install --git https://github.com/asciinema/agg
+
+If cargo isn't available, grab the agg binary directly:
+  curl -L https://github.com/asciinema/agg/releases/latest/download/agg-aarch64-apple-darwin -o /usr/local/bin/agg && chmod +x /usr/local/bin/agg
+
+
+STEP 1: RUN THE HARNESS (builds features 41 & 42)
+--------------------------------------------------
+# Optional: record this for the LinkedIn MP4 (Demo B)
+asciinema rec demo/raw/harness-demo.cast --cols 120 --rows 35 --idle-time-limit 5
+
+# Inside the recording:
+./harness.sh --skip-init
+
+# When done, Ctrl+D to stop recording
+
+
+STEP 2: VERIFY FEATURES WORK
+-----------------------------
+npm run dev
+
+- Type: "What files are in this directory?" → should see tool calls + markdown-rendered response
+- Type: exit → should print "Goodbye!" and exit
+- Run again, type /exit → same behavior
+- Run again, ask a simple question (no tools) → markdown should still render
+
+
+STEP 3: RECORD CLI DEMO (Demo A → GIF for README)
+---------------------------------------------------
+asciinema rec demo/raw/cli-demo.cast --cols 100 --rows 30 --idle-time-limit 3
+
+# Inside the recording:
+#   1. npm run dev
+#   2. Ask "What files are in this directory and what does this project do?"
+#   3. Watch tool calls + formatted response
+#   4. Type "exit"
+#   5. Ctrl+D to stop recording
+
+
+STEP 4: RENDER OUTPUTS
+-----------------------
+# Option A: Use the script (does both demos interactively)
+./demo/record.sh
+
+# Option B: Render manually
+
+# CLI demo → GIF
+agg demo/raw/cli-demo.cast demo/output/cli-demo.gif --theme monokai --font-size 16 --speed 1.5
+
+# Harness demo → MP4
+agg demo/raw/harness-demo.cast /tmp/harness.gif --theme monokai --font-size 18 --speed 6
+ffmpeg -i /tmp/harness.gif -c:v libx264 -preset slow -crf 23 -pix_fmt yuv420p -movflags +faststart \
+  -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black" \
+  demo/output/harness-demo.mp4
+
+
+STEP 5: OPTIMIZE GIF IF NEEDED (>2MB)
+--------------------------------------
+ffmpeg -i demo/output/cli-demo.gif \
+  -vf "fps=10,scale=800:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer" \
+  -loop 0 demo/output/cli-demo-opt.gif
+
+
+STEP 6: COMMIT & PUSH
+----------------------
+# After everything looks good:
+git add demo/output/ features.json feature_list.json
+git commit -m "feat: Demo recordings for CLI and harness"
+git push
+
+
+FILES
+-----
+demo/raw/          → .cast recordings (gitignored)
+demo/output/       → rendered GIF + MP4 (commit these)
+demo/record.sh     → interactive recording pipeline
+README.md          → already has GIF embed (demo/output/cli-demo.gif)
