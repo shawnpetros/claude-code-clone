@@ -548,7 +548,7 @@
       "Verify the same graceful exit behavior",
       "Verify /help output lists /exit as an available command"
     ],
-    "passes": true,
+    "passes": false,
     "depends_on": [8, 33]
   },
   {
@@ -562,7 +562,7 @@
       "Verify a simple response WITHOUT tool calls still renders with markdown (regression check)",
       "Verify the rendered output does not show raw markdown syntax (##, **, -, ```)"
     ],
-    "passes": true,
+    "passes": false,
     "depends_on": [20, 25, 26]
   }
 ]
