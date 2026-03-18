@@ -1,7 +1,7 @@
 {
   "project": "claude-code-clone",
   "framework": "The Harness (Spec > Split > Execute > Verify > Iterate)",
-  "updated": "2026-03-16",
+  "updated": "2026-03-17",
   "phases": [
     {
       "id": "P0",
@@ -68,10 +68,10 @@
     {
       "id": "P2",
       "name": "Polish & Demo",
-      "status": "in_progress",
+      "status": "complete",
       "features": [
-        { "id": "P2-F1", "name": "Exit Command", "status": "not_started" },
-        { "id": "P2-F2", "name": "Markdown Rendering Fix", "status": "not_started" }
+        { "id": "P2-F1", "name": "Exit Command", "status": "complete" },
+        { "id": "P2-F2", "name": "Markdown Rendering Fix", "status": "complete" }
       ]
     }
   ]

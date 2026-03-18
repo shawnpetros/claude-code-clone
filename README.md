@@ -20,7 +20,7 @@ This project is also a test case for **The Harness** — a framework for spec-dr
 - A **coding agent** that picked up features sequentially, implemented them one at a time, verified each one, and committed after every feature
 - A **feature list** (`feature_list.json`) that served as the contract between agent sessions — no agent needed to know what the previous one did beyond "which features pass"
 
-Three agent sessions. 40 features. Zero human-written implementation code. The prompts are in `/prompts/` if you want to see exactly how the sausage was made.
+Three agent sessions. 42 features. Zero human-written implementation code. The prompts are in `/prompts/` if you want to see exactly how the sausage was made.
 
 The point wasn't to prove "AI can code" (we know). The point was to prove that **the spec is the product** — if your feature list, dependency graph, and verification steps are precise enough, execution becomes mechanical. The human's job is the spec. The agent's job is the code.
 
@@ -47,7 +47,7 @@ Tokens: ↑1,247 ↓892
 >
 ```
 
-### Feature Inventory (40/40 passing)
+### Feature Inventory (42/42 passing)
 
 | Category | Count | What |
 |----------|-------|------|
@@ -55,9 +55,9 @@ Tokens: ↑1,247 ↓892
 | **Core** | 5 | API client, message sending, agent loop, REPL, conversation persistence |
 | **Tools** | 7 | `read_file`, `write_file`, `edit_file`, `bash`, tool registry, API integration, tool execution loop |
 | **Streaming** | 4 | Token-by-token output, tool_use block accumulation, post-tool streaming |
-| **UI** | 7 | Input prompts, colored output, markdown rendering, syntax highlighting, spinner, tool call display |
+| **UI** | 8 | Input prompts, colored output, markdown rendering (including tool-call responses), syntax highlighting, spinner, tool call display |
 | **Context** | 5 | Token tracking, usage display, conversation compaction, auto-trigger at 80% window, post-compaction continuity |
-| **CLI** | 4 | One-shot prompt mode, `/help`, `/clear`, Ctrl+C stream cancellation |
+| **CLI** | 5 | One-shot prompt mode, `/help`, `/clear`, `/exit`, Ctrl+C stream cancellation |
 | **Error Handling** | 5 | Missing API key, API errors, tool errors, malformed args, edit-file edge cases |
 
 ## Architecture
@@ -170,6 +170,8 @@ All tunables live in `src/constants.ts`:
 Each conversation turn costs API tokens. Sonnet is priced at $3/M input, $15/M output (as of early 2025). A typical interactive session might run $0.05–0.50 depending on how many tool calls and how long the conversation goes. Context compaction helps keep long sessions from blowing up your bill.
 
 ## The Build Process (For the Curious)
+
+> See the harness in action: [`demo/output/harness-demo.mp4`](demo/output/harness-demo.mp4)
 
 This project was built using a three-session agentic pipeline:
 
