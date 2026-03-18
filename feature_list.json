@@ -548,7 +548,7 @@
       "Verify the same graceful exit behavior",
       "Verify /help output lists /exit as an available command"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [8, 33]
   },
   {

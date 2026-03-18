@@ -123,8 +123,14 @@ async function runInteractiveMode(): Promise<void> {
       const trimmed = input.trim();
       if (!trimmed) continue;
 
+      if (trimmed === "exit" || trimmed === "quit") {
+        console.log(chalk.dim("\nGoodbye!"));
+        rl.close();
+        process.exit(0);
+      }
+
       if (trimmed.startsWith("/")) {
-        const handled = handleSlashCommand(trimmed, messages);
+        const handled = handleSlashCommand(trimmed, messages, rl);
         if (handled) continue;
       }
 
@@ -136,7 +142,6 @@ async function runInteractiveMode(): Promise<void> {
 
       try {
         const streamedChunks: string[] = [];
-        let hasToolCalls = false;
         const result = await runAgentLoop(
           client,
           messages,
@@ -153,23 +158,25 @@ async function runInteractiveMode(): Promise<void> {
               spinner.stop();
               spinnerActive = false;
             }
-            hasToolCalls = true;
             renderToolCall(toolName, input);
           },
           (toolName, result) => {
             renderToolResult(toolName, result);
+            streamedChunks.length = 0;
           },
           currentAbortController.signal
         );
 
-        // Re-render final response with markdown if no tool calls were involved
-        if (!hasToolCalls && result.response) {
+        // Re-render final response with markdown
+        if (result.response) {
           const cols = process.stdout.columns || 80;
           let displayedLines = 0;
           for (const line of streamedChunks.join("").split("\n")) {
             displayedLines += Math.max(1, Math.ceil((line.length || 1) / cols));
           }
-          process.stdout.write(`\x1b[${displayedLines}A\x1b[J`);
+          if (displayedLines > 0) {
+            process.stdout.write(`\x1b[${displayedLines}A\x1b[J`);
+          }
           renderAssistantMessage(result.response);
         } else {
           process.stdout.write("\n");
@@ -207,7 +214,8 @@ async function runInteractiveMode(): Promise<void> {
 
 function handleSlashCommand(
   input: string,
-  messages: Anthropic.MessageParam[]
+  messages: Anthropic.MessageParam[],
+  rl: ReturnType<typeof createInputInterface>
 ): boolean {
   const cmd = input.toLowerCase();
 
@@ -215,6 +223,7 @@ function handleSlashCommand(
     console.log(chalk.bold("\nAvailable commands:"));
     console.log("  /help   — Show this help message");
     console.log("  /clear  — Clear conversation history");
+    console.log("  /exit   — Exit the program");
     console.log("  Ctrl+C  — Cancel current response or exit\n");
     return true;
   }
@@ -224,6 +233,12 @@ function handleSlashCommand(
     contextManager.reset();
     console.log(chalk.green("  Conversation cleared.\n"));
     return true;
+  }
+
+  if (cmd === "/exit" || cmd === "/quit") {
+    console.log(chalk.dim("\nGoodbye!"));
+    rl.close();
+    process.exit(0);
   }
 
   console.log(chalk.yellow(`  Unknown command: ${input}. Type /help for available commands.\n`));
