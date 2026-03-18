@@ -562,7 +562,7 @@
       "Verify a simple response WITHOUT tool calls still renders with markdown (regression check)",
       "Verify the rendered output does not show raw markdown syntax (##, **, -, ```)"
     ],
-    "passes": false,
+    "passes": true,
     "depends_on": [20, 25, 26]
   }
 ]
