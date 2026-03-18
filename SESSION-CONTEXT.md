@@ -1,17 +1,14 @@
 ## Status
-P2 prepped. Features 41-42 in spec with passes: false. Harness fixed with streaming output + sandboxed agent sessions. Source files untouched — awaiting harness build.
+Project complete. 42/42 features passing, all three phases done. Demos recorded, README updated, pushed to GitHub.
 
 ## In-Flight
-Nothing active — user will run harness + record demos independently.
+Nothing — project is finished.
 
 ## Key Details
-- Harness now uses --output-format stream-json + --verbose for real-time visibility
-- Harness agents sandboxed: --strict-mcp-config (empty), --disable-slash-commands, --no-session-persistence
-- Raw JSONL saved to .harness-logs/*.raw.jsonl for debugging
-- demo/INSTRUCTIONS.txt has full recording runbook
+- Harness upgraded: --output-format stream-json, --verbose, sandboxed agents (--strict-mcp-config, --disable-slash-commands)
+- Demos: cli-demo.gif (1.4MB), harness-demo.mp4 (888KB) in demo/output/
+- Repo: github.com/shawnpetros/claude-code-clone
 
 ## Next Steps
-1. Run `./harness.sh --skip-init` to build features 41-42
-2. Verify features manually with `npm run dev`
-3. Install asciinema + agg, record demos (see demo/INSTRUCTIONS.txt)
-4. Render GIF + MP4, commit demo assets, push
+1. Upload harness-demo.mp4 to LinkedIn
+2. No planned development — project achieved its educational goal
